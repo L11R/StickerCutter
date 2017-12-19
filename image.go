@@ -5,6 +5,10 @@ import (
 	"github.com/fogleman/gg"
 	"github.com/nfnt/resize"
 	"math"
+	"io"
+	"os/exec"
+	"io/ioutil"
+	"fmt"
 )
 
 func MakeSticker(img image.Image) image.Image {
@@ -26,3 +30,30 @@ func MakeSticker(img image.Image) image.Image {
 
 	return dc.Image()
 }
+
+func RemoveAudio(video io.Reader) error {
+	// "-movflags", "frag_keyframe+empty_moov", "-f", "mp4",
+	cmd := exec.Command("ffmpeg.exe", "-y", "-i", "temp1.mp4", "-vcodec", "copy", "-an", "temp2.mp4")
+	cmd.Stdin = video
+
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return err
+	}
+
+	err = cmd.Start()
+	if err != nil {
+		return err
+	}
+
+	outerr, _ := ioutil.ReadAll(stderr)
+	fmt.Println(string(outerr))
+
+	err = cmd.Wait()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+

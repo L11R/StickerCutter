@@ -42,7 +42,11 @@ func main() {
 		}
 
 		if update.Message.Photo != nil {
-			HandleImage(update)
+			HandlePhoto(update)
+		}
+
+		if update.Message.VideoNote != nil {
+			HandleVideoNote(update)
 		}
 
 		// commands
