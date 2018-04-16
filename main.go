@@ -4,6 +4,8 @@ import (
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/sirupsen/logrus"
 	"os"
+	"golang.org/x/net/proxy"
+	"net/http"
 )
 
 var log = logrus.New()
@@ -23,7 +25,21 @@ func main() {
 		log.Fatal("TOKEN env variable not specified!")
 	}
 
-	bot, err = tgbotapi.NewBotAPI(token)
+	// Socks for Russia
+	socksDialer, err := proxy.SOCKS5("tcp", "socks.druble.ru:1080", &proxy.Auth{
+		User: "free",
+		Password: "forfriends",
+	}, proxy.Direct)
+	if err != nil {
+		log.Fatal("Proxy error!")
+	}
+	tr := http.Transport{
+		Dial: socksDialer.Dial,
+	}
+
+	bot, err = tgbotapi.NewBotAPIWithClient(token, &http.Client{
+		Transport: &tr,
+	})
 	if err != nil {
 		log.Fatal(err)
 	}

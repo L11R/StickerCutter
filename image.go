@@ -33,7 +33,7 @@ func MakeSticker(img image.Image) image.Image {
 
 func RemoveAudio(video io.Reader) error {
 	// "-movflags", "frag_keyframe+empty_moov", "-f", "mp4",
-	cmd := exec.Command("ffmpeg.exe", "-y", "-i", "temp1.mp4", "-vcodec", "copy", "-an", "temp2.mp4")
+	cmd := exec.Command("ffmpeg", "-y", "-i", "temp1.mp4", "-vcodec", "copy", "-an", "temp2.mp4")
 	cmd.Stdin = video
 
 	stderr, err := cmd.StderrPipe()
