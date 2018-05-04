@@ -27,7 +27,11 @@ func HandlePhoto(update tgbotapi.Update) {
 				return
 			}
 
-			res, err := http.Get(url)
+			client := http.Client{
+				Transport: tr,
+			}
+
+			res, err := client.Get(url)
 			if err != nil {
 				log.Warn(err)
 				return
