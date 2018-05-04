@@ -8,12 +8,15 @@ import (
 	"net/http"
 	"github.com/spf13/viper"
 	"fmt"
+	"net"
+	"context"
 )
 
 var log = logrus.New()
 
 var (
 	bot *tgbotapi.BotAPI
+	tr  *http.Transport
 )
 
 func main() {
@@ -35,20 +38,22 @@ func main() {
 		log.Fatal("TOKEN env variable not specified!")
 	}
 
-	// Socks for Russia
-	socksDialer, err := proxy.SOCKS5("tcp", "socks.druble.ru:1080", &proxy.Auth{
-		User: "free",
-		Password: "forfriends",
-	}, proxy.Direct)
-	if err != nil {
-		log.Fatal("Proxy error!")
-	}
-	tr := http.Transport{
-		Dial: socksDialer.Dial,
+	tr = &http.Transport{
+		DialContext: func(_ context.Context, network, addr string) (net.Conn, error) {
+			socksDialer, err := proxy.SOCKS5("tcp", fmt.Sprintf("%s:%d", viper.GetString("proxy.address"), viper.GetString("proxy.port")), &proxy.Auth{
+				User: viper.GetString("proxy.user"),
+				Password: viper.GetString("proxy.password"),
+			}, proxy.Direct)
+			if err != nil {
+				return nil, err
+			}
+
+			return socksDialer.Dial(network, addr)
+		},
 	}
 
 	bot, err = tgbotapi.NewBotAPIWithClient(token, &http.Client{
-		Transport: &tr,
+		Transport: tr,
 	})
 	if err != nil {
 		log.Fatal(err)
