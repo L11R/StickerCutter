@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/sirupsen/logrus"
-	"os"
 	"golang.org/x/net/proxy"
 	"net/http"
 	"github.com/spf13/viper"
@@ -33,11 +32,6 @@ func main() {
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
 
-	token := os.Getenv("TOKEN")
-	if token == "" {
-		log.Fatal("TOKEN env variable not specified!")
-	}
-
 	tr = &http.Transport{
 		DialContext: func(_ context.Context, network, addr string) (net.Conn, error) {
 			socksDialer, err := proxy.SOCKS5("tcp", fmt.Sprintf("%s:%d", viper.GetString("proxy.address"), viper.GetString("proxy.port")), &proxy.Auth{
@@ -52,7 +46,7 @@ func main() {
 		},
 	}
 
-	bot, err = tgbotapi.NewBotAPIWithClient(token, &http.Client{
+	bot, err = tgbotapi.NewBotAPIWithClient(viper.GetString("token"), &http.Client{
 		Transport: tr,
 	})
 	if err != nil {
