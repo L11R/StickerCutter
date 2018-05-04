@@ -6,6 +6,8 @@ import (
 	"os"
 	"golang.org/x/net/proxy"
 	"net/http"
+	"github.com/spf13/viper"
+	"fmt"
 )
 
 var log = logrus.New()
@@ -19,6 +21,14 @@ func main() {
 	log.Info("Sticker Cutter started!")
 
 	var err error
+
+	// Load configuration
+	viper.SetConfigName("config")
+	viper.AddConfigPath(".")
+	err = viper.ReadInConfig() // Find and read the config file
+	if err != nil {
+		panic(fmt.Errorf("Fatal error config file: %s \n", err))
+	}
 
 	token := os.Getenv("TOKEN")
 	if token == "" {

@@ -9,6 +9,11 @@ import (
 	"os"
 	"io"
 	"io/ioutil"
+	"net"
+	"golang.org/x/net/proxy"
+	"fmt"
+	"context"
+	"github.com/spf13/viper"
 )
 
 func StartCommand(update tgbotapi.Update)  {
@@ -64,7 +69,23 @@ func HandleVideoNote(update tgbotapi.Update) {
 		return
 	}
 
-	res, err := http.Get(url)
+	client := http.Client{
+		Transport: &http.Transport{
+			DialContext: func(_ context.Context, network, addr string) (net.Conn, error) {
+				socksDialer, err := proxy.SOCKS5("tcp", fmt.Sprintf("%s:%d", viper.GetString("proxy.address"), viper.GetString("proxy.port")), &proxy.Auth{
+					User: viper.GetString("proxy.user"),
+					Password: viper.GetString("proxy.password"),
+				}, proxy.Direct)
+				if err != nil {
+					return nil, err
+				}
+
+				return socksDialer.Dial(network, addr)
+			},
+		},
+	}
+
+	res, err := client.Get(url)
 	if err != nil {
 		log.Warn(err)
 		return
